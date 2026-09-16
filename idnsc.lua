@@ -1,92 +1,3 @@
--- Apple Silicon (macOS) & Multi-Executor Compatibility Polyfill
-do
-    local env = (getgenv and getgenv()) or _G or shared or {}
-
-    -- Polyfill cloneref
-    if not rawget(env, "cloneref") and type(cloneref) == "nil" then
-        env.cloneref = function(obj) return obj end
-        cloneref = env.cloneref
-    end
-
-    -- Polyfill getgc
-    if not rawget(env, "getgc") and type(getgc) == "nil" then
-        env.getgc = function() return {} end
-        getgc = env.getgc
-    end
-
-    -- Polyfill getupvalues
-    if not rawget(env, "getupvalues") and type(getupvalues) == "nil" then
-        env.getupvalues = function() return {} end
-        getupvalues = env.getupvalues
-    end
-
-    -- Polyfill setupvalue
-    if not rawget(env, "setupvalue") and type(setupvalue) == "nil" then
-        env.setupvalue = function() end
-        setupvalue = env.setupvalue
-    end
-
-    -- Polyfill getconnections
-    if not rawget(env, "getconnections") and type(getconnections) == "nil" then
-        env.getconnections = function() return {} end
-        getconnections = env.getconnections
-    end
-
-    -- Polyfill setreadonly / make_writeable
-    local sr = env.setreadonly or env.make_writeable or env.setisreadonly or (setreadonly or make_writeable or setisreadonly)
-    if not sr then
-        sr = function() end
-    end
-    env.setreadonly = sr
-    setreadonly = sr
-
-    -- Polyfill getrawmetatable
-    if not rawget(env, "getrawmetatable") and type(getrawmetatable) == "nil" then
-        env.getrawmetatable = (debug and debug.getmetatable) or getmetatable or function() return {} end
-        getrawmetatable = env.getrawmetatable
-    end
-
-    -- Polyfill newcclosure
-    if not rawget(env, "newcclosure") and type(newcclosure) == "nil" then
-        env.newcclosure = function(f) return f end
-        newcclosure = env.newcclosure
-    end
-
-    -- Polyfill getnamecallmethod
-    if not rawget(env, "getnamecallmethod") and type(getnamecallmethod) == "nil" then
-        env.getnamecallmethod = function() return "" end
-        getnamecallmethod = env.getnamecallmethod
-    end
-
-    -- Polyfill setclipboard
-    if not rawget(env, "setclipboard") and type(setclipboard) == "nil" then
-        env.setclipboard = env.toclipboard or env.set_clipboard or (setclipboard or toclipboard or function() end)
-        setclipboard = env.setclipboard
-    end
-
-    -- Polyfill firetouchinterest
-    if not rawget(env, "firetouchinterest") and type(firetouchinterest) == "nil" then
-        env.firetouchinterest = function(part1, part2, toggle)
-            if part1 and part2 and part1:IsA("BasePart") and part2:IsA("BasePart") then
-                pcall(function() part1.CFrame = part2.CFrame end)
-            end
-        end
-        firetouchinterest = env.firetouchinterest
-    end
-
-    -- Polyfill fireclickdetector
-    if not rawget(env, "fireclickdetector") and type(fireclickdetector) == "nil" then
-        env.fireclickdetector = function(cd)
-            if cd and cd:IsA("ClickDetector") then
-                pcall(function()
-                    if cd.Fire then cd:Fire() end
-                end)
-            end
-        end
-        fireclickdetector = env.fireclickdetector
-    end
-end
-
 do
   ply = game.Players
   plr = ply.LocalPlayer
@@ -405,10 +316,9 @@ Useskills = function(weapon, skill)
     vim1:SendKeyEvent(false, "Y", false, game);
   end
 end
-local gg = pcall(getrawmetatable, game) and getrawmetatable(game)
-if gg then
-  local old = gg.__namecall
-  pcall(setreadonly, gg, false)
+local gg = getrawmetatable(game)
+local old = gg.__namecall
+setreadonly(gg, false)
 gg.__namecall = newcclosure(function(...)
   local method = getnamecallmethod()
   local args = {...}    
@@ -12097,7 +12007,7 @@ function HitRegistrationModule.Execute()
 
             local finalId = bit32.bxor(AttackRemoteId + 909090, seed * 2)
             
-            (cloneref or function(v) return v end)(AttackRemoteTarget):FireServer(
+            cloneref(AttackRemoteTarget):FireServer(
                 encodedString,
                 finalId,
                 targetHead,
